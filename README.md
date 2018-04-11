@@ -13,6 +13,17 @@ You can obtain basic understanding of API in tests (ApiTests class), but it shou
 
 All amounts are BigDecimals, so you can safely pass any numbers there
 
-Application is thread-safe, coverage is 100%. during build it's tested with mutation tests.
+## Testing
+
+Application is thoroughly tested, coverage is 100%. during build it's tested with mutation tests.
+
+Also transfer logics is tested with massively-multithreaded test, which tries hard to create deadlocks. If it will succeed — test will fail bacause of timeout
 
 I didn't write unit tests because on such scale 100% coverage by API tests doesn't require us to have unit tests in such simple business logics case.
+
+## Running
+
+```bash
+./gradlew build
+java --add-modules=java.xml.binf -jar build/libs/revolut-test-task-0.1-all.jar
+```
