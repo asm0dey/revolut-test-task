@@ -25,5 +25,5 @@ I didn't write unit tests because on such scale 100% coverage by API tests doesn
 
 ```bash
 ./gradlew build
-java --add-modules=java.xml.binf -jar build/libs/revolut-test-task-0.1-all.jar
+java --add-modules=java.xml.bind -jar build/libs/revolut-test-task-0.1-all.jar
 ```
