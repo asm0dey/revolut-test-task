@@ -7,9 +7,9 @@ import revolut.repo.AccountRepo;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,16 +31,20 @@ public class DeadlockTest {
         LongAdder counter = new LongAdder();
         List<Runnable> transfers = new ArrayList<>(12_000_000);
         for (int i = 0; i < 2_000_000; i++) {
-            transfers.add(transactionRequest(counter, ids[0], ids[1]));
-            transfers.add(transactionRequest(counter, ids[1], ids[2]));
-            transfers.add(transactionRequest(counter, ids[2], ids[0]));
-            transfers.add(transactionRequest(counter, ids[0], ids[2]));
-            transfers.add(transactionRequest(counter, ids[2], ids[1]));
-            transfers.add(transactionRequest(counter, ids[1], ids[0]));
+            transfers.add(transactionRequest(ids[0], ids[1]));
+            transfers.add(transactionRequest(ids[1], ids[2]));
+            transfers.add(transactionRequest(ids[2], ids[0]));
+            transfers.add(transactionRequest(ids[0], ids[2]));
+            transfers.add(transactionRequest(ids[2], ids[1]));
+            transfers.add(transactionRequest(ids[1], ids[0]));
         }
         transfers
                 .parallelStream()
-                .forEach(Runnable::run);
+                .map((Function<Runnable, Void>) runnable -> {
+                    runnable.run();
+                    return null;
+                })
+                .forEach(x -> counter.increment());
         // check we have really called transfer 12 million times
         assertEquals(12_000_000L, counter.sum());
         // check we haven't losed any money
@@ -53,11 +57,10 @@ public class DeadlockTest {
                 .orElse(BigDecimal.ZERO).compareTo(new BigDecimal("30000000")));
     }
 
-    private Runnable transactionRequest(LongAdder adder, int id1, int id2) {
+    private Runnable transactionRequest(int id1, int id2) {
         return () -> {
             try {
                 repo.transfer(id1, id2, BigDecimal.ONE);
-                adder.increment();
             } catch (NotEnoughMoneyException | InvalidTransferException ignored) {
                 // in this test we don't care about exceptions, we're looking for deadlocks
             }
