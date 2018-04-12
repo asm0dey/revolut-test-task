@@ -30,4 +30,4 @@ java --add-modules=java.xml.bind -jar build/libs/revolut-test-task-0.1-all.jar
 
 ## Docs
 
-List of available methods is located on `/ranl` endpoint.
+List of available methods is located on `/raml` endpoint.
